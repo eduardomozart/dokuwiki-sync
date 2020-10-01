@@ -1,0 +1,213 @@
+#!/bin/sh
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    --attachs-only|--attachments-only)
+    DWATTACHSONLY=true
+    shift # past argument
+    shift # past value
+    ;;
+    -c|--config-file)
+    if [ -f "$1" ]; then
+	DWCONFIG="$1"
+    else
+	echo "Configuration file (-c|--config-file) does not exists. Exiting."
+	exit 2
+    fi
+    shift # past argument
+    shift # past value
+    ;;
+    -d|--debug)
+    DWDEBUG=true
+    shift # past argument
+    shift # past value
+    ;;
+    --pages-only)
+    DWPAGESONLY=true
+    shift # past argument
+    shift # past value
+    ;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    echo "Invalid parameter ($1). Exiting."
+    exit 1
+    shift # past argument
+    ;;
+esac
+done
+
+# 1. Create ProgressBar function
+# 1.1 Input is currentState($1) and totalState($2)
+function ProgressBar {
+# Process data
+    let _progress=(${1}*100/${2}*100)/100
+    let _done=(${_progress}*4)/10
+    let _left=40-$_done
+# Build progressbar string lengths
+    _fill=$(printf "%${_done}s")
+    _empty=$(printf "%${_left}s")
+
+# 1.2 Build progressbar strings and print the ProgressBar line
+# 1.2.1 Output example:
+# 1.2.1.1 Progress : [########################################] 100%
+printf "\rProgress (${1} of ${2}) : [${_fill// /#}${_empty// /-}] ${_progress}%%"
+
+}
+
+getInfo() {
+	if [ "$2" == "page" ]; then
+		localDBInfo="$HOME/.dokujclient/pages.db"
+		localwikifile="$localwikipagesdir/$(echo $1 | tr ':' '/').txt"
+		echo
+		echo "getPageInfo $1"
+		remotewikigetInfo="$(dokujclient getPageInfo $1 | sed -e 's/[[:space:]]*$//')"
+
+	elif [ "$2" == "attachment" ]; then
+		localDBInfo="$HOME/.dokujclient/attachments.db"
+		localwikifile="$localwikimediadir/$(echo $1 | tr ':' '/')"
+		echo
+		echo "getAttachmentInfo $1"
+		remotewikigetInfo="$(dokujclient getAttachmentInfo $1)"
+	fi
+
+	echo "Remote: $remotewikigetInfo"
+	if [ ! -f $localDBInfo ]; then
+		mkdir -p "`dirname \"$localDBInfo\"`" 2>/dev/null
+		touch $localDBInfo
+	fi
+
+	# Print $localDBInfo file filtering it to not shown $remotewikigetInfo output line
+	# If the grep command outputs the page or attachment info, then it doesn't match remote info and should be downloaded
+
+	remotewikigetFile=1
+	while IFS= read -r line
+	do
+		# echo "if \"$line \" -eq \"$remotewikigetInfo\""
+		if [[ "$line" == "$remotewikigetInfo" ]]; then
+			echo "Local:  $line"
+			remotewikigetFile=0
+			break
+		elif [[ "$line" == "$(echo $remotewikigetInfo | cut -f1 -d" ")" ]]; then
+			echo "Local:  $line"
+			break
+		fi
+	done < "$localDBInfo"
+
+	if [ $remotewikigetFile == 1 ]; then
+		echo "Local: "
+
+		if [ -f $localwikifile ]; then
+			datef1=$(stat -c %y "$localwikifile")
+		fi
+
+		mkdir -p "`dirname \"$localwikifile\"`" 2>/dev/null
+
+		if [ "$2" == "page" ]; then
+			echo "getPage $1 > $localwikifile"
+			dokujclient getPage $1 > $localwikifile
+
+		elif [ "$2" == "attachment" ]; then
+			echo "getAttachment $1 $localwikifile"
+			dokujclient getAttachment $1 $localwikifile
+
+		fi
+
+		chown $localwikichown:$localwikichgrp $localwikifile
+
+		if [ -f $localwikifile ]; then
+			datep2=$(stat -c %y "$localwikifile")
+
+			if [[ $datef2 != $datef1 ]]; then
+				# Remove outdated file from localDBInfo, if exists
+				printf "%s\n" "g/$(echo $remotewikigetInfo | cut -f1 -d" ")/d" w | ed -s $localDBInfo
+
+				# Append downloaded file to localDBInfo
+				echo $remotewikigetInfo >> $localDBInfo
+				sort $localDBInfo > $localDBInfo.sort
+				mv $localDBInfo.sort $localDBInfo
+			fi
+		fi
+
+		# return 1
+	fi
+
+	# return 0
+}
+
+getAttachsSumAsync() {
+	local count=1
+	local total=$(printf "%s\n" "$remotewikiAttachments" | wc -l)
+	for i in $remotewikiAttachments; do
+		# echo
+		if [ ! -z DWDEBUG ]; then echo "[getAttachsSumAsync - $count of $total] getAttachments $i"; fi
+		local remotewikigetAttachments=$(dokujclient getAttachments $i)
+		if [ ! -z DWDEBUG ]; then echo "[getAttachsSumAsync] $remotewikigetAttachments" | nl; fi
+
+		if [ -v remotewikigetAttachments ] && [ ! -z "$remotewikigetAttachments" ]; then
+			sum=$(($(printf "%s\n" "$remotewikigetAttachments" | wc -l) + sum))
+		fi
+		# echo "[getAttachsSumAsync] Sum: $sum"
+		echo $sum
+		count=$((count+1))
+	done
+}
+
+if ( [ -z "$DWCONFIG" ] ); then
+	DWCONFIG="$HOME/.dokujclientrcsync"
+fi
+
+source "$DWCONFIG"
+
+echo "getPageList ."
+remotewikigetPagelist=$(dokujclient getPagelist .)
+echo "$remotewikigetPagelist" | nl
+
+if ( [ -z "$DWATTACHSONLY" ] ) || ( [ -z "$DWATTACHSONLY" ] && [ -z "$DWPAGESONLY" ] ); then
+	count=1
+	for i in $remotewikigetPagelist; do
+		echo
+		ProgressBar "$count" $(printf "%s\n" "$remotewikigetPagelist" | wc -l)
+
+		getInfo "$i" "page"
+		count=$((count+1))
+	done
+fi
+
+if ( [ -z "$DWPAGESONLY" ] ) || ( [ ! -z "$DWATTACHSONLY" ] && [ -z "$DWPAGESONLY" ] ); then
+	remotewikiAttachments=$(echo "$remotewikigetPagelist" | cut -f1 -d":" | sort | uniq)
+	# echo "$remotewikiAttachments"
+	# echo
+	sum=0
+	temp_sum=$(mktemp)
+	count=1
+	getAttachsSumAsync > $temp_sum &
+
+	for i in $remotewikiAttachments; do
+		echo
+		echo "getAttachments $i"
+		remotewikigetAttachments=$(dokujclient getAttachments $i)
+		echo "$remotewikigetAttachments" | nl
+
+		for j in $remotewikigetAttachments; do
+			# sum=$(<$temp_sum)
+			sum=$(awk '{ if ($1 ~ /^[0-9]+$/) lastnumber=$1 } END {print lastnumber}' $temp_sum)
+			if [ ! -z DWDEBUG ]; then echo "[remotewikigetAttachments] Sum: $sum"; fi
+			if [[ $sum =~ ^-?[0-9]+$ ]]; then
+				if [[ "$sum" -gt "0" ]] && [[ "$count" -le "$sum" ]]; then
+					echo
+					ProgressBar "$count" "$sum"
+				fi
+			fi
+			getInfo "$j" "attachment"
+			count=$((count + 1))
+		done
+	done
+fi
+
+php "$localwikidir/bin/indexer.php"
+chown -Rf $localwikichown:$localwikichgrp "$localwikidatadir/meta"
+rm -rf "$localwikidatadir/cache/*"
