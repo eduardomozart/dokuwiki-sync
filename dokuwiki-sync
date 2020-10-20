@@ -1,5 +1,26 @@
 #!/bin/sh
 
+progname=$(basename $0)
+progversion="1.0.1"
+
+# usage function
+function usage()
+{
+   cat << HEREDOC
+
+   Usage: $progname [-c|--config-file CONFIG_FILE] [-a|--attachments-only] [-p|--pages-only] [-d|--debug]
+
+   optional arguments:
+     -h, --help                           Show this help message and exit.
+     -c, --config-file CONFIG_FILE        Load CONFIG_FILE configuration.
+     -a, --attachments-only               Sync attachments only.
+     -p, --pages-only                     Sync remotepages only.
+     -d, --debug                          Print debug information.
+     -v, --version                        Print version information.
+
+HEREDOC
+}
+
 POSITIONAL=()
 while [[ $# -gt 0 ]]
 do
@@ -9,7 +30,6 @@ case $key in
     --attachs-only|--attachments-only)
     DWATTACHSONLY=true
     shift # past argument
-    shift # past value
     ;;
     -c|--config-file)
     DWCONFIG="$2"
@@ -19,12 +39,20 @@ case $key in
     -d|--debug)
     DWDEBUG=true
     shift # past argument
-    shift # past value
     ;;
     --pages-only)
     DWPAGESONLY=true
     shift # past argument
-    shift # past value
+    ;;
+    -h | --help)
+    usage
+    exit
+    shift # past argument
+    ;;
+    -v | --version)
+    echo $progname $progversion
+    exit
+    shift # past argument
     ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
@@ -33,6 +61,22 @@ case $key in
     shift # past argument
     ;;
 esac
+done
+
+OPTS=$(getopt -o "hcapd" --long "help,config-file,attachments-only,pages-only,debug" -n "$progname" -- "$@")
+if [ $? != 0 ] ; then echo "Error in command line arguments." >&2 ; exit 1 ; fi
+eval set -- "$OPTS"
+
+while true; do
+  case "$1" in
+    -h | --help ) usage; exit; ;;
+    -c | --config-file ) DWCONFIG="$2"; shift 2 ;;
+    -a | --attachments-only ) DWATTACHSONLY=true; shift ;;
+    -p | --pages-only ) DWPAGESONLY=true; shift ;;
+    -d | --debug ) DWDEBUG=true; shift ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
 done
 
 # 1. Create ProgressBar function
@@ -56,7 +100,7 @@ printf "\rProgress (${1} of ${2}) : [${_fill// /#}${_empty// /-}] ${_progress}%%
 getInfo() {
 	if [ "$2" == "page" ]; then
 		localDBInfo="$DWCONFIGDIRNAME/.dokuwiki-sync/pages.db"
-		localwikifile="$localwikipagesdir/$(echo $1 | tr ':' '/').txt"
+		localwikifile="$localwikidatadir/$(echo $1 | tr ':' '/').txt"
 		echo
 		echo "getPageInfo $1"
 		remotewikigetInfo=$($dokujclient getPageInfo $1 | sed -e 's/[[:space:]]*$//')
@@ -138,11 +182,11 @@ getAttachsSumAsync() {
 	local total=$(printf "%s\n" "$remotewikiAttachments" | wc -l)
 	for i in $remotewikiAttachments; do
 		# echo
-		if [ ! -z DWDEBUG ]; then echo "[getAttachsSumAsync - $count of $total] getAttachments $i"; fi
+		if [ "$DWDEBUG" = true ]; then echo "[getAttachsSumAsync - $count of $total] getAttachments $i"; fi
 		local remotewikigetAttachments=$($dokujclient getAttachments $i)
-		if [ ! -z DWDEBUG ]; then echo "[getAttachsSumAsync] $remotewikigetAttachments" | nl; fi
+		if [ "$DWDEBUG" = true ]; then echo "[getAttachsSumAsync] $remotewikigetAttachments" | nl; fi
 
-		if [ -v remotewikigetAttachments ] && [ ! -z "$remotewikigetAttachments" ]; then
+		if [ -v remotewikigetAttachments ] && [ ! -z "${remotewikigetAttachments}" ]; then
 			sum=$(($(printf "%s\n" "$remotewikigetAttachments" | wc -l) + sum))
 		fi
 		# echo "[getAttachsSumAsync] Sum: $sum"
@@ -151,54 +195,146 @@ getAttachsSumAsync() {
 	done
 }
 
-if ( [ -z "$DWCONFIG" ] ); then
-	DWCONFIG="$HOME/.dokuwiki-syncrc"
-fi
-
-if [ -f $DWCONFIG ]; then
-	source "$DWCONFIG"
-	DWCONFIGDIRNAME="`dirname \"$DWCONFIG\"`"
-else
-	echo "Configuration file '$DWCONFIG' does not exists. Exiting."
-	exit 2
-fi
-
 #localwikidir="/var/www/clients/client0/web3/web"
-#localwikidatadir="$localwikidir/data"
-#localwikipagesdir="$localwikidatadir/pages"
-#localwikimediadir="$localwikidatadir/media"
+#localwikisavedir="$localwikidir/data"
+#localwikidatadir="$localwikisavedir/pages"
+#localwikimediadir="$localwikisavedir/media"
 #localwikichown="5006"
 #localwikichgrp="5005"
 
-if [ -z "$localwikichown" ]; then
-	localwikichown=$(id -u $USERNAME)
+if ( [ -z "${DWCONFIG}" ] ); then
+	if [ -f "$HOME/.dokuwiki-syncrc" ]; then
+		DWCONFIG="$HOME/.dokuwiki-syncrc"
+	elif [ -f "$HOME/private/.dokuwiki-syncrc" ]; then #ISPConfig
+		DWCONFIG="$HOME/private/.dokuwiki-syncrc"
+	elif [ -f "$HOME/etc/.dokuwiki-syncrc" ]; then #cPanel
+		DWCONFIG="$HOME/etc/.dokuwiki-syncrc"
+	elif [ -f "$(pwd)/.dokuwiki-syncrc" ]; then
+		DWCONFIG="$(pwd)/.dokujclientrc"
+	fi
+fi
+if [ "$DWDEBUG" = true ]; then echo "DWCONFIG=$DWCONFIG"; fi
+
+if ( [ ! -z "${DWCONFIG}" ] && [ -f $DWCONFIG ] ); then
+	source "$DWCONFIG"
+	DWCONFIGDIRNAME="`dirname \"$DWCONFIG\"`"
+else
+	if [ "$DWDEBUG" = true ]; then echo "if [ -d $HOME/private ]; then"; fi
+	if [ -d "$HOME/private" ]; then #ISPConfig
+		DWCONFIGDIRNAME="$HOME/private"
+	fi
+
+	if [ -z ${DWCONFIGDIRNAME} ]; then
+ 		if [ "$DWDEBUG" = true ]; then echo "if [ -d $HOME/etc ]; then"; fi
+		if [ -d "$HOME/etc" ]; then #cPanel
+			DWCONFIGDIRNAME="$HOME/etc"
+		fi
+	fi
+
+	if [ -z ${DWCONFIGDIRNAME} ]; then
+ 		if [ "$DWDEBUG" = true ]; then echo "if [ -d $HOME ]; then"; fi
+		if [ -d "$HOME" ]; then
+			DWCONFIGDIRNAME="$HOME"
+		fi
+	fi
+fi
+if [ "$DWDEBUG" = true ]; then echo "DWCONFIGDIRNAME=$DWCONFIGDIRNAME"; fi
+if [ -d "$DWCONFIGDIRNAME" ]; then
+	if [ ! -w "$DWCONFIGDIRNAME" ]; then
+		echo "dokuwiki-sync '$DWCONFIGDIRNAME' directory is NOT WRITABLE. Exiting."
+		exit 2
+	fi
 fi
 
-if [ -z "$localwikichgrp" ]; then
-	localwikichgrp=$(id -g $USERNAME)
+if [ -z "${localwikidir}" ]; then
+	# ISPConfig
+	if [ -f "$HOME/web/doku.php" ]; then
+		localwikidir="$HOME/web";
+	# Apache
+	elif [ -f "/var/www/html/doku.php" ]; then
+		localwikidir="/var/www/html";
+	elif [ -f "/var/www/html/dokuwiki/doku.php" ]; then
+		localwikidir="/var/www/html/dokuwiki"
+	elif [ -f "/var/wwww/html/wiki/doku.php" ]; then
+		localwikidir="/var/www/html/wiki"
+	# cPanel
+	elif [ -f "$HOME/public_html/dokuwiki/doku.php" ]; then
+		localwikidir="$HOME/public_html/dokuwiki/doku.php"
+	elif [ -f "$HOME/public_html/wiki/doku.php" ]; then
+		localwikidir="$HOME/public_html/wiki/doku.php"
+	else
+		echo "dokuwiki-sync 'localwikidir' parameter is not set. Exiting."
+		exit 3
+	fi
+fi
+if [ "$DWDEBUG" = true ]; then echo "localwikidir=$localwikidir"; fi
+
+if [ -z "${localwikisavedir}" ]; then
+	localwikisavedir="$localwikidir/data";
+fi
+if [ "$DWDEBUG" = true ]; then echo "localwikisavedir=$localwikisavedir"; fi
+
+if [ -z "${localwikidatadir}" ]; then
+	localwikidatadir="$localwikisavedir/pages"
+fi
+if [ "$DWDEBUG" = true ]; then echo "localwikidatadir=$localwikidatadir"; fi
+
+if [ -z "${localwikimediadir}" ]; then
+	localwikimediadir="$localwikisavedir/media"
+fi
+if [ "$DWDEBUG" = true ]; then echo "localwikimediadir=$localwikimediadir"; fi
+
+#if [ -z "${localwikichown}" ]; then
+#	localwikichown=$(id -u $USERNAME)
+#fi
+
+#if [ -z "${localwikichgrp}" ]; then
+#	localwikichgrp=$(id -g $USERNAME)
+#fi
+
+if ( [ -z "${localwikichown}" ] && [ -z "${localwikichgrp}" ] ); then
+	localwikichown=$(stat -c '%U' "$localwikisavedir/meta")
+	localwikichgrp=$(stat -c '%G' "$localwikisavedir/meta")
+fi
+if [ "$DWDEBUG" = true ]; then
+	echo "localwikichown=$localwikichown"
+	echo "localwikichgrp=$localwikichgrp"
 fi
 
 if [ ! -f "$HOME/.dokujclientrc" ]; then
 	if [ ! -f "$DWCONFIGDIRNAME/.dokujclientrc" ]; then
-		if [ ! -f "$(pwd)/.dokujclientrc" ]; then
-			if ([[ ! -v $user ]]); then
-				echo "dokujclient '--user' parameter is not set. Exiting."
-				exit 3
-			elif ([[ ! -v $password ]]); then
-				echo "dokujclient '--password' parameter is not set. Exiting."
-				exit 4
-			elif ([[ ! -v $url ]]); then
-				echo "dokujclient '--url' parameter is not set. Exiting."
-				exit 5
+		if [ ! -f "$HOME/private/.dokujclientrc" ]; then # ISPConfig
+			if [ ! -f "$HOME/etc/.dokujclientrc" ]; then #cPanel
+				if [ ! -f "$(pwd)/.dokujclientrc" ]; then
+					if ([[ ! -v $url ]]); then
+						echo "dokujclient '--url' parameter is not set. Exiting."
+						exit 4
+					elif ([[ ! -v $url ]]); then
+						echo "dokujclient '--user' parameter is not set. Exiting."
+						exit 5
+					elif ([[ ! -v $password ]]); then
+						echo "dokujclient '--password' parameter is not set. Exiting."
+						exit 6
+					fi
+				else
+					source "($pwd)/.dokujclientrc"
+				fi
+			else
+				source "$HOME/etc/.dokujclientrc"
 			fi
 		else
-			source "($pwd)/.dokujclientrc"
+			source "$HOME/private/.dokujclientrc"
 		fi
 	else
 		source "$DWCONFIGDIRNAME/.dokujclientrc"
 	fi
 else
 	source "$HOME/.dokujclientrc"
+fi
+if [ "$DWDEBUG" = true ]; then
+	echo "url=$url"
+	echo "user=$user"
+	echo "password=$password"
 fi
 
 export PATH="$PATH:/usr/local/bin"
@@ -208,7 +344,7 @@ echo "getPageList ."
 remotewikigetPagelist=$($dokujclient getPagelist .)
 echo "$remotewikigetPagelist" | nl
 
-if ( [ -z "$DWATTACHSONLY" ] ) || ( [ -z "$DWATTACHSONLY" ] && [ -z "$DWPAGESONLY" ] ); then
+if ( [ -z "${DWATTACHSONLY}" ] ) || ( [ -z "${DWATTACHSONLY}" ] && [ -z "${DWPAGESONLY}" ] ); then
 	count=1
 	for i in $remotewikigetPagelist; do
 		echo
@@ -220,7 +356,7 @@ if ( [ -z "$DWATTACHSONLY" ] ) || ( [ -z "$DWATTACHSONLY" ] && [ -z "$DWPAGESONL
 	done
 fi
 
-if ( [ -z "$DWPAGESONLY" ] ) || ( [ ! -z "$DWATTACHSONLY" ] && [ -z "$DWPAGESONLY" ] ); then
+if ( [ -z "${DWPAGESONLY}" ] ) || ( [ -z "${DWATTACHSONLY}" ] && [ -z "${DWPAGESONLY}" ] ); then
 	remotewikiAttachments=$(echo "$remotewikigetPagelist" | cut -f1 -d":" | sort | uniq)
 	# echo "$remotewikiAttachments"
 	# echo
@@ -238,7 +374,7 @@ if ( [ -z "$DWPAGESONLY" ] ) || ( [ ! -z "$DWATTACHSONLY" ] && [ -z "$DWPAGESONL
 		for j in $remotewikigetAttachments; do
 			# sum=$(<$temp_sum)
 			sum=$(awk '{ if ($1 ~ /^[0-9]+$/) lastnumber=$1 } END {print lastnumber}' $temp_sum)
-			if [ ! -z DWDEBUG ]; then echo "[remotewikigetAttachments] Sum: $sum"; fi
+			if [ "$DWDEBUG" = true ]; then echo "[remotewikigetAttachments] Sum: $sum"; fi
 			if [[ $sum =~ ^-?[0-9]+$ ]]; then
 				if [[ "$sum" -gt "0" ]] && [[ "$count" -le "$sum" ]]; then
 					echo
@@ -252,5 +388,13 @@ if ( [ -z "$DWPAGESONLY" ] ) || ( [ ! -z "$DWATTACHSONLY" ] && [ -z "$DWPAGESONL
 fi
 
 php "$localwikidir/bin/indexer.php"
-chown -Rf $localwikichown:$localwikichgrp "$localwikidatadir/meta"
-rm -rf "$localwikidatadir/cache/*"
+
+if ( [ ! -z "${localwikichown}" ] && [ ! -z "${localwikichgrp}" ] ); then
+	chown -Rf $localwikichown:$localwikichgrp "$localwikisavedir/meta"
+elif ( [ ! -z "${localwikichown}" ] ); then
+	chown -Rf $localwikichown "$localwikisavedir/meta"
+elif ( [ ! -z "${localwikichgrp}" ] ); then
+	chgrp -Rf $localwikichgrp "$localwikisavedir/meta"
+fi
+
+rm -rf "$localwikisavedir/cache/*"
