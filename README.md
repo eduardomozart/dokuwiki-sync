@@ -187,7 +187,7 @@ The form to create/modify a cron job has the following ﬁelds:
 
 # Debugging
 
-You can use the **Log output** feature from ISPConfig to debug ``dokuwiki-sync`` script or runs it manually through shell - you can debug the script with the same user that ISPConfig executes it through the following command:
+You can use the **Log output** feature from ISPConfig to debug ``dokuwiki-sync`` script or runs it manually through shell - you can debug the script with the same user that ISPConfig executes it through the following command (where ``web3`` is the instance that your local DokuWiki are hosted):
 
 ```
 sudo -H -u web3 -s sh -c '/usr/local/bin/dokuwiki-sync --config-file /var/www/clients/client0/web3/private/.dokuwiki-syncrc --debug'
