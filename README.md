@@ -6,13 +6,9 @@ Please note that ``dokuwiki-sync`` is a unidirectional script: it doesn't sync (
 
 # Screenshots
 
-``![dokuwiki-sync syncing pages from remote wiki to local wiki](/screenshots/dokuwiki-sync-pages.png)``
+``![dokuwiki-sync syncing pages from remote wiki to local wiki](/screenshots/dokuwiki-sync-pages.png?raw=true "``dokuwiki-sync`` script syncing pages from remote wiki to local wiki.")``
  
-``dokuwiki-sync`` script syncing pages from remote wiki to local wiki.
-
-``![dokuwiki-sync syncing attachments from remote wiki to local wiki](/screenshots/dokuwiki-sync-attachments.png)``
- 
-``dokuwiki-sync`` script syncing attachments from remote wiki to local wiki.
+``![dokuwiki-sync syncing attachments from remote wiki to local wiki](/screenshots/dokuwiki-sync-attachments.png?raw=true "``dokuwiki-sync`` script syncing attachments from remote wiki to local wiki.")``
 
 Note that in both cases, ``dokuwiki-sync`` script compares the remote metadata with local metadata and only download/overwrite the local wiki file if local metadata is different than remote one.
  
