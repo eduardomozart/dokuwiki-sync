@@ -110,7 +110,7 @@ By default, the local database used to compare remote files with local ones are 
 2. ``$HOME/etc``
 3. ``$HOME``
 
-If none of these directories above exists or are not writable, the ``dokuwiki-syncrc`` script fails.
+If none of these directories above exists or are not writable, the ``$DWCONFIGDIRNAME`` variable is not set and ``dokuwiki-syncrc`` script fails.
 
 A valid ``.dokuwiki-syncrc`` configuration file would be:
 
