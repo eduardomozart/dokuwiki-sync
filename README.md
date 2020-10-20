@@ -15,18 +15,6 @@ Please note that ``dokuwiki-sync`` is a unidirectional script: it doesn't sync (
 ``dokuwiki-sync`` script syncing attachments from remote wiki to local wiki.
 
 Note that in both cases, ``dokuwiki-sync`` script compares the remote metadata with local metadata and only download/overwrite the local wiki file if local metadata is different than remote one.
-
-# Purpose
-
-I tried to sync a local DokuWiki instance using the [Sync](https://www.dokuwiki.org/plugin:sync) DokuWiki plugin, but for some reason, I was receiving the error ``transport error - Could not connect to ssl://xxxxx (0)`` when trying to connect to my remote DokuWiki instance. At first, I thought that it could be related to "remote" and "remoteuser" entries in my remote DokuWiki configuration or something related to my remote DokuWiki instance certificated be emitted by Let's Encrypt CA (maybe the local DokuWiki instance wasn't trusting it), but I successfully connected to my remote DokuWiki instance using xcom DokuWiki plugin, so I was convicted that the error wasn't related to my setup or XMLRPC issues but with the [Sync](https://www.dokuwiki.org/plugin:xcom) plugin itself.
-
-I decided to migrate to MediaWiki and use the [CloneDiff](https://www.mediawiki.org/wiki/Extension:CloneDiff) MediaWiki extension, but I noticed that the learning curve of MediaWiki is higher than DokuWiki and there isn't a easy replacement to [RefNotes](https://www.dokuwiki.org/plugin:refnotes) DokuWiki plugin and others. So I decided to stick with DokuWiki, but I needed to solve this issue and find a way to sync a remote DokuWiki instance with a local one.
-
-Initially, I thought using a FTP-like solution to sync my remote DokuWiki instance with a local one, but I didn't wanted to sync all pages. I would need to: 1) keep a local exclusion list of attachments and pages that I wouldn't like to sync OR 2) defining the pages that I would like to sync manually. It would not be a viable approach.
-
-The XMLRPC interface that DokuWiki exposes allow defining an ACL (Access Control List) into remote DokuWiki instance that would be respected by the local DokuWiki instance, e.g. you only need to enable the ``remote`` config and add the user or group that the user belongs to ``remoteuser`` config at remote DokuWiki instance and when connecting through XMLRPC with the specified ``remoteuser``, it would inherit the ACL permissions defined at the remote Access Control List configuration, so I could enable and disable anytime namespaces for synchronization using the remote DokuWiki admin page.
-
-As XMLRPC interface was working through xcom DokuWiki plugin, I decided to find a way to use this protocol to sync my local DokuWiki instance with the remote one, but I couldn't find any easy-to-use solution to sync a local DokuWiki instance with a remote one, so when I find [dokuJClient](https://github.com/gturri/dokuJClient) project, I decided to develop one using it.
  
 # Getting Started
 
@@ -123,6 +111,18 @@ Parameter | Optional |Description
 The ``localwikichown`` and ``localwikichgrp`` parameters are useful if you're running this script as root, because it allows you to change the owner of pages and attachment files using UID or username. E.g. if you deployed this script at ``/etc/cron.daily``, the script will run with the user ``root`` by default, but the ``apache``/``httpd`` daemon runs using another user than ``root`` by default and the daemon would not be able to access the pages and attachments saved by ``root``. So these parameters allows you to change the user and group that the directory ``$localwikisavedir/meta`` belongs so the permissions are correctly applied to the user and group specified.
 
 By default, the script will attempts to parse the current user and group that the directory ``$localwikisavedir/meta`` belongs and will try to change the user and group according **IF** the parameters ``localwikichown`` and ``localwikichgrp`` are not set.
+
+# Purpose
+
+I tried to sync a local DokuWiki instance using the [Sync](https://www.dokuwiki.org/plugin:sync) DokuWiki plugin, but for some reason, I was receiving the error ``transport error - Could not connect to ssl://xxxxx (0)`` when trying to connect to my remote DokuWiki instance. At first, I thought that it could be related to "remote" and "remoteuser" entries in my remote DokuWiki configuration or something related to my remote DokuWiki instance certificated be emitted by Let's Encrypt CA (maybe the local DokuWiki instance wasn't trusting it), but I successfully connected to my remote DokuWiki instance using xcom DokuWiki plugin, so I was convicted that the error wasn't related to my setup or XMLRPC issues but with the [Sync](https://www.dokuwiki.org/plugin:xcom) plugin itself.
+
+I decided to migrate to MediaWiki and use the [CloneDiff](https://www.mediawiki.org/wiki/Extension:CloneDiff) MediaWiki extension, but I noticed that the learning curve of MediaWiki is higher than DokuWiki and there isn't a easy replacement to [RefNotes](https://www.dokuwiki.org/plugin:refnotes) DokuWiki plugin and others. So I decided to stick with DokuWiki, but I needed to solve this issue and find a way to sync a remote DokuWiki instance with a local one.
+
+Initially, I thought using a FTP-like solution to sync my remote DokuWiki instance with a local one or use the [gitbacked](https://www.dokuwiki.org/plugin:gitbacked) DokuWiki plugin, but I didn't wanted to sync all pages. I would need to: 1) keep a local exclusion list of attachments and pages that I wouldn't like to sync OR 2) defining the pages that I would like to sync manually OR 3) syncing all files and create an exclusion list that would delete all undesired synced pages and attachments namespaces (bandwidth waste...). It would not be a viable approach.
+
+The XMLRPC interface that DokuWiki exposes allow defining an ACL (Access Control List) into remote DokuWiki instance that would be respected by the local DokuWiki instance, e.g. you only need to enable the ``remote`` config and add the user or group that the user belongs to ``remoteuser`` config at remote DokuWiki instance and when connecting through XMLRPC with the specified ``remoteuser``, it would inherit the ACL permissions defined at the remote Access Control List configuration, so I could enable and disable anytime namespaces for synchronization using the remote DokuWiki admin page.
+
+As XMLRPC interface was working through xcom DokuWiki plugin, I decided to find a way to use this protocol to sync my local DokuWiki instance with the remote one, but I couldn't find any easy-to-use solution to sync a local DokuWiki instance with a remote one, so when I find [dokuJClient](https://github.com/gturri/dokuJClient) project, I decided to develop one using it.
 
 # License
 
