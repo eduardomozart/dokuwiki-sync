@@ -6,9 +6,9 @@ Please note that ``dokuwiki-sync`` is a unidirectional script: it doesn't sync (
 
 # Screenshots
 
-``![dokuwiki-sync syncing pages from remote wiki to local wiki](/screenshots/dokuwiki-sync-pages.png?raw=true "``dokuwiki-sync`` script syncing pages from remote wiki to local wiki.")``
+![dokuwiki-sync syncing pages from remote wiki to local wiki](/screenshots/dokuwiki-sync-pages.png?raw=true "``dokuwiki-sync`` script syncing pages from remote wiki to local wiki.")
  
-``![dokuwiki-sync syncing attachments from remote wiki to local wiki](/screenshots/dokuwiki-sync-attachments.png?raw=true "``dokuwiki-sync`` script syncing attachments from remote wiki to local wiki.")``
+![dokuwiki-sync syncing attachments from remote wiki to local wiki](/screenshots/dokuwiki-sync-attachments.png?raw=true "``dokuwiki-sync`` script syncing attachments from remote wiki to local wiki.")
 
 Note that in both cases, ``dokuwiki-sync`` script compares the remote metadata with local metadata and only download/overwrite the local wiki file if local metadata is different than remote one.
  
@@ -18,32 +18,48 @@ Note that in both cases, ``dokuwiki-sync`` script compares the remote metadata w
 
 It may be installed from the packages on several Linux distributions:
 
-    sudo apt-get install dokujclient
-    
+```
+sudo apt-get install dokujclient
+```
+
 If it isn't available in the packages of your plataform you may:
 
 1. Download the [binaries](http://turri.fr/dokujclient).
 
-    curl -L -o /tmp/dokujclient-3.9.1-bin.tar.gz http://turri.fr/dokujclient/dokujclient-3.9.1-bin.tar.gz
-   
+```
+curl -L -o /tmp/dokujclient-3.9.1-bin.tar.gz http://turri.fr/dokujclient/dokujclient-3.9.1-bin.tar.gz
+```
+
 2. Extract it, and add the extracted directoy to your path.
 
-    mkdir /usr/local/dokujclient && tar -zxf /tmp/dokujclient-3.9.1-bin.tar.gz --strip-components=1 -C /usr/local/dokujclient
-    chown -Rf root:root /usr/local/dokujclient
-    ln -s /usr/local/dokujclient/dokujclient /usr/local/bin
-   
+```
+mkdir /usr/local/dokujclient && tar -zxf /tmp/dokujclient-3.9.1-bin.tar.gz --strip-components=1 -C /usr/local/dokujclient
+chown -Rf root:root /usr/local/dokujclient
+ln -s /usr/local/dokujclient/dokujclient /usr/local/bin
+```
+
 3. Ensure it's correctly installed, typing e.g.:
 
-    dokujclient --version
+```
+dokujclient --version
+```
 
 ## Getting the dokuwiki-sync script
 
-    curl -L -o /usr/local/bin/dokuwiki-sync https://raw.githubusercontent.com/coldscientist/dokuwiki-sync/main/dokuwiki-sync
-    chmod +x /usr/local/bin/dokuwiki-sync
+```
+curl -L -o /usr/local/bin/dokuwiki-sync https://raw.githubusercontent.com/coldscientist/dokuwiki-sync/main/dokuwiki-sync
+chmod +x /usr/local/bin/dokuwiki-sync
+```
+
+Ensure it's correctly installed, typing e.g.:
+
+```
+dokuwiki-sync --version
+```
 
 # Parameters
 
-Usage: dokuwiki-sync [-c|--config-file CONFIG_FILE] [-a|--attachments-only] [-p|--pages-only] [-d|--debug]        
+Usage: ``dokuwiki-sync [-c|--config-file CONFIG_FILE] [-a|--attachments-only] [-p|--pages-only] [-d|--debug]``
 
 Parameter | Description
 --------- | -----------
@@ -52,14 +68,17 @@ Parameter | Description
 ``-a, --attachments-only`` | Sync attachments only.
 ``-p, --pages-only`` | Sync remotepages only.
 ``-d, --debug`` | Print debug information.
+``-v, --version`` | Print version information.
 
 ## Config file (``.dokujclientrc``)
 
 You'll need to specify the url, user, and password to dokuJClient connect to the remote DokuWiki instance. You can create a ``.dokujclientrc`` file and put some or all of this info in it.
 
-    echo "url=http://myhost/mywiki/lib/exe/xmlrpc.php" > ~/.dokujclientrc
-    echo "user=toto" >> ~/.dokujclientrc
-    echo "password=myPassword" >> ~/.dokujclientrc
+```
+echo "url=http://myhost/mywiki/lib/exe/xmlrpc.php" > ~/.dokujclientrc
+echo "user=toto" >> ~/.dokujclientrc
+echo "password=myPassword" >> ~/.dokujclientrc
+```
 
 By default, the ``dokuwiki-sync`` script attempts to load dokuJClient configuration parameters (``url``, ``user`` and ``password`` of remote DokuWiki instance) into the following sequence:
 
@@ -74,9 +93,9 @@ By default, the ``dokuwiki-sync`` script attempts to load dokuJClient configurat
 
 ## Config file (``.dokuwiki-syncrc``)
 
-By default, the ``dokuwiki-sync`` script attempts to load it's configuration parameters into the following sequence:
+By default, the ``dokuwiki-sync`` script attempts to load it's configuration file (``.dokuwiki-syncrc``) into the following sequence:
 
-1. Through ``-c | --config-file`` parameter, e.g. ``dokuwiki-sync --config-file [web_root]/../private/.dokuwiki-syncrc``
+1. Through ``-c | --config-file`` parameter, e.g. ``dokuwiki-sync --config-file /var/www/clients/client0/web3/private/.dokuwiki-syncrc``
 2. ``$HOME/.dokuwiki-syncrc`` config file.
 3. ``$HOME/private/.dokuwiki-syncrc``
 4. ``$HOME/etc/.dokuwiki-syncrc``
@@ -85,20 +104,31 @@ By default, the ``dokuwiki-sync`` script attempts to load it's configuration par
 7. The ``dokuwiki-sync`` script checks common file paths and guess the parameters.
 8. Fails.
 
+By default, the local database used to compare remote files with local ones are created into the same path of ``.dokuwiki-syncrc`` configuration file. If the configuration file is not set, the ``dokuwiki-sync`` script will attempt to locate/create the local database into the following locations:
+
+1. ``$HOME/private``
+2. ``$HOME/etc``
+3. ``$HOME``
+
+If none of these directories above exists or are not writable, the ``dokuwiki-syncrc`` script fails.
+
 A valid ``.dokuwiki-syncrc`` configuration file would be:
 
-    localwikidir=/var/www/clients/client0/web3/web
-    localwikisavedir=$localwikidir/data
-    localwikidatadir=$localwikidatadir/pages
-    localwikimediadir=$localwikidatadir/media
-    localwikichown=5006
-    localwikichgrp=5005
+```
+localwikidir=/var/www/clients/client0/web3/web
+localwikisavedir=$localwikidir/data
+localwikidatadir=$localwikidatadir/pages
+localwikimediadir=$localwikidatadir/media
+localwikichown=5006
+localwikichgrp=5005
+```
 
-Parameter | Optional |Description
+Parameter | Optional | Description
 --------- | --------- |-----------
 ``localwikidir`` | Yes. | Specifies the local DokuWiki directory, e.g. ``/var/www/html/dokuwiki``
-``localwikisavedir`` | Yes. | Specifies the ``data/pages`` default directory for pages sync. Default: ``$localwikidir/data/pages``
-``localwikidatadir`` | Yes. | Specifies the ``data/media`` default directory for attachments sync. Default: ``$localwikidir/data/media``
+``localwikisavedir`` | Yes. | Specifies the ``data`` default directory for pages sync. Default: ``$localwikidir/data``
+``localwikidatadir`` | Yes. | Specifies the ``data/pages`` default directory for attachments sync. Default: ``$localwikidatadir/pages``
+``localwikimediadir`` | Yes. | Specifies the ``data/media`` default directory for attachments sync. Default: ``$localwikidatadir/media``
 ``localwikichown`` | Yes. | Specifies the UID (e.g. ``0``) or Username (e.g. ``root``) of the user that the directory ``$localwikisavedir/meta`` belongs (more details below).
 ``localwikichgrp`` | Yes. | Specified the GID (e.g. ``0``) or Groupname of the group that the directory ``$localwikisavedir/meta`` belongs (more details below).
 
@@ -119,6 +149,17 @@ Initially, I thought using a FTP-like solution to sync my remote DokuWiki instan
 The XMLRPC interface that DokuWiki exposes allow defining an ACL (Access Control List) into remote DokuWiki instance that would be respected by the local DokuWiki instance, e.g. you only need to enable the ``remote`` config and add the user or group that the user belongs to ``remoteuser`` config at remote DokuWiki instance and when connecting through XMLRPC with the specified ``remoteuser``, it would inherit the ACL permissions defined at the remote Access Control List configuration, so I could enable and disable anytime namespaces for synchronization using the remote DokuWiki admin page.
 
 As XMLRPC interface was working through xcom DokuWiki plugin, I decided to find a way to use this protocol to sync my local DokuWiki instance with the remote one, but I couldn't find any easy-to-use solution to sync a local DokuWiki instance with a remote one, so when I find [dokuJClient](https://github.com/gturri/dokuJClient) project, I decided to develop one using it.
+
+# Exit Error Codes
+
+Errorcode | Description
+--------- | ----------- |
+1         | Error in command line arguments.
+2         | ``$DWCONFIGDIRNAME`` directory doesn't exists or is NOT WRITABLE.
+3         | dokuwiki-sync 'localwikidir' parameter is not set.
+4         | dokujclient '--url' parameter is not set.
+5         | dokujclient '--user' parameter is not set.
+6         | dokujclient '--password' parameter is not set.
 
 # License
 
