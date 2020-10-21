@@ -2,7 +2,7 @@
 
 Shell script to sync remote DokuWiki instance to local one through XMLRPC using [dokuJClient](https://github.com/gturri/dokuJClient).
 
-Please note that ``dokuwiki-sync`` is a unidirectional script: it doesn't sync (yet, at least) two DokuWiki instances, it only overwrites local content with remote one if local content is different than the remote one; even if local content is newer than remote content, it will be overwritten by remote content. So you'll need to make sure that you edit common pages between DokuWiki instances into remote wiki instead of local one, or your changes will be overwritten during ``dokuwiki-sync`` execution.
+Please note that ``dokuwiki-sync`` is a unidirectional script: it doesn't sync (at least, not yet) two DokuWiki instances, it only overwrites local content with remote one if local content is different than the remote one; even if local content is newer than remote content, it will be overwritten by remote content. So you'll need to make sure that you edit common pages between DokuWiki instances into remote wiki instead of local one, or your changes will be overwritten during ``dokuwiki-sync`` execution.
 
 # Screenshots
 
@@ -187,7 +187,7 @@ The form to create/modify a cron job has the following ﬁelds:
 
 # Debugging
 
-You can use the **Log output** feature from ISPConfig to debug ``dokuwiki-sync`` script or runs it manually through shell - you can debug the script with the same user that ISPConfig executes it through the following command (where ``web3`` is the instance that your local DokuWiki are hosted):
+You can use the **Log output** feature from **Cron Jobs** (ISPConfig) to debug ``dokuwiki-sync`` script or runs it manually through shell - you can debug the script with the same user that ISPConfig executes it through the following command (where ``web3`` is the instance that your local DokuWiki are hosted):
 
 ```
 sudo -H -u web3 -s sh -c '/usr/local/bin/dokuwiki-sync --config-file /var/www/clients/client0/web3/private/.dokuwiki-syncrc --debug'
