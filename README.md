@@ -152,7 +152,7 @@ As XMLRPC interface was working through xcom DokuWiki plugin, I decided to find 
 
 # Automatically running ``dokuwiki-sync`` through Cron job
 
-A cron job is a scheduled task that is executed by the system at a speciﬁed time/date. 
+A cron job is a scheduled task that is executed by the system at a specified time/date. 
 
 For most tasks, it does not matter the exact time will be executed, the important is only it's execution frequency, like daily or weekly. You can create the following script inside ``/etc/cron.daily`` to run ``dokuwiki-sync`` everyday:
 
@@ -173,17 +173,17 @@ $ crontab -e
 
 If you use [ISPConfig](https://www.ispconfig.org/), you can create Cron jobs through the Web interface. Go to **Sites** > **Cron Jobs**. To create a new cron job, click on the **Add new Cron job** button. This will lead you to the Cron Job form with the tab Cron Job. 
 
-The form to create/modify a cron job has the following ﬁelds:
+The form to create/modify a cron job has the following fields:
 
-1. **Parent website**: This is the web site for which you deﬁne the cron job (select the website that hosts your local DokuWiki instance).
+1. **Parent website**: This is the web site for which you define the cron job (select the website that hosts your local DokuWiki instance).
 2. **Minutes**: The minute to run the own job. Allowed values: ``0-59``. ``*`` means every minute. 
 3. **Hours**: The hour to run the cron job. Allowed values: ``l-23``. ``*`` means every hour. 
 4. **Days of month**: The day of the month to run the cron job. Allowed values: ``1-31``. ``*`` means every day of the month. 
 5. **Months**: The month to run the own job. Allowed values: ``1-12`` (or names). ``*`` means every month.
 6. **Days of week**: The day of the week to run the cron job. Allowed values: ``0-7`` (``0`` or ``7`` is ``Sun``, or use names). ``*`` means every day of the week. 
 7. **Command to run**: This is the command to execute. Shell scripts will be run by /bin/sh, URLs will be executed by wget. E.g. ``/usr/local/bin/dokuwiki-sync --config-file [web_root]/../private/.dokuwiki-syncrc``
-8. **Log output**: This option logs the output of the cronjcb into a cron log ﬁle that is placed into the ``private`` folder of the website. 
-9. **Active**: This deﬁnes if the cron job is active or not.
+8. **Log output**: This option logs the output of the cronjcb into a cron log file that is placed into the ``private`` folder of the website. 
+9. **Active**: This defines if the cron job is active or not.
 
 # Debugging
 
