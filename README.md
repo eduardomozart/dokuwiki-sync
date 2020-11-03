@@ -182,7 +182,7 @@ The form to create/modify a cron job has the following fields:
 5. **Months**: The month to run the own job. Allowed values: ``1-12`` (or names). ``*`` means every month.
 6. **Days of week**: The day of the week to run the cron job. Allowed values: ``0-7`` (``0`` or ``7`` is ``Sun``, or use names). ``*`` means every day of the week. 
 7. **Command to run**: This is the command to execute. Shell scripts will be run by ``/bin/sh``, URLs will be executed by ``wget``. E.g. ``/usr/local/bin/dokuwiki-sync --config-file [web_root]/../private/.dokuwiki-syncrc``
-8. **Log output**: This option logs the output of the cronjcb into a cron log file that is placed into the ``private`` folder of the website.
+8. **Log output**: This option logs the output of the cronjob into a cron log file that is placed into the ``private`` folder of the website.
 9. **Active**: This defines if the cron job is active or not.
 
 # Debugging
