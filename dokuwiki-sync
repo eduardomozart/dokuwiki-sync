@@ -127,9 +127,11 @@ getInfo() {
 	do
 		# echo "if \"$line \" -eq \"$remotewikigetInfo\""
 		if [[ "$line" == "$remotewikigetInfo" ]]; then
-			echo "Local:  $line"
-			remotewikigetFile=0
-			break
+			if [ -f $localwikifile ]; then
+				echo "Local:  $line"
+				remotewikigetFile=0
+				break
+			fi
 		elif [[ "$line" == "$(echo $remotewikigetInfo | cut -f1 -d" ")" ]]; then
 			echo "Local:  $line"
 			break
