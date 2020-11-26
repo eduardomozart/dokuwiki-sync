@@ -117,8 +117,8 @@ A valid ``.dokuwiki-syncrc`` configuration file would be:
 ```
 localwikidir=/var/www/clients/client0/web3/web
 localwikisavedir=$localwikidir/data
-localwikidatadir=$localwikidatadir/pages
-localwikimediadir=$localwikidatadir/media
+localwikidatadir=$localwikisavedir/pages
+localwikimediadir=$localwikisavedir/media
 localwikichown=5006
 localwikichgrp=5005
 ```
@@ -127,8 +127,8 @@ Parameter | Optional | Description
 --------- | --------- |-----------
 ``localwikidir`` | Yes. | Specifies the local DokuWiki directory, e.g. ``/var/www/html/dokuwiki``
 ``localwikisavedir`` | Yes. | Specifies the ``data`` default directory for pages sync. Default: ``$localwikidir/data``
-``localwikidatadir`` | Yes. | Specifies the ``data/pages`` default directory for attachments sync. Default: ``$localwikidatadir/pages``
-``localwikimediadir`` | Yes. | Specifies the ``data/media`` default directory for attachments sync. Default: ``$localwikidatadir/media``
+``localwikidatadir`` | Yes. | Specifies the ``data/pages`` default directory for attachments sync. Default: ``$localwikisavedir/pages``
+``localwikimediadir`` | Yes. | Specifies the ``data/media`` default directory for attachments sync. Default: ``$localwikisavedir/media``
 ``localwikichown`` | Yes. | Specifies the UID (e.g. ``0``) or Username (e.g. ``root``) of the user that the directory ``$localwikisavedir/meta`` belongs (more details below).
 ``localwikichgrp`` | Yes. | Specified the GID (e.g. ``0``) or Groupname of the group that the directory ``$localwikisavedir/meta`` belongs (more details below).
 
