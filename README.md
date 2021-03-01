@@ -6,9 +6,9 @@ Please note that ``dokuwiki-sync`` is a unidirectional script: it doesn't sync (
 
 # Screenshots
 
-![dokuwiki-sync syncing pages from remote wiki to local wiki](/screenshots/dokuwiki-sync-pages.png?raw=true "``dokuwiki-sync`` script syncing pages from remote wiki to local wiki.")
+![dokuwiki-sync syncing pages from remote wiki to local wiki](/screenshots/dokuwiki-sync-pages.png?raw=true "dokuwiki-sync script syncing pages from remote wiki to local wiki.")
  
-![dokuwiki-sync syncing attachments from remote wiki to local wiki](/screenshots/dokuwiki-sync-attachments.png?raw=true "``dokuwiki-sync`` script syncing attachments from remote wiki to local wiki.")
+![dokuwiki-sync syncing attachments from remote wiki to local wiki](/screenshots/dokuwiki-sync-attachments.png?raw=true "dokuwiki-sync script syncing attachments from remote wiki to local wiki.")
 
 Note that in both cases, ``dokuwiki-sync`` script compares the remote metadata with local metadata and only download/overwrite the local wiki file if local metadata is different than remote one.
  
@@ -142,7 +142,7 @@ By default, the script will attempts to parse the current user and group that th
 
 I tried to sync a local DokuWiki instance using the [Sync](https://www.dokuwiki.org/plugin:sync) DokuWiki plugin, but for some reason, I was receiving the error ``transport error - Could not connect to ssl://xxxxx (0)`` when trying to connect to my remote DokuWiki instance. At first, I thought that it could be related to ``remote`` and ``remoteuser`` entries in my remote DokuWiki configuration or something related to my remote DokuWiki instance certificated be emitted by Let's Encrypt CA (maybe the local DokuWiki instance wasn't trusting it), but I successfully connected to my remote DokuWiki instance using xcom DokuWiki plugin, so I was convicted that the error wasn't related to my setup or XMLRPC issues but with the [Sync](https://www.dokuwiki.org/plugin:xcom) plugin itself.
 
-![remote and remoteuser entries in remote DokuWiki configuration](/screenshots/2020-09-04 07_32_40-Window.png?raw=true "remote and remoteuser entries in remote DokuWiki configuration.")
+![remote and remoteuser entries in remote DokuWiki configuration](/screenshots/2020-09-04%2007_32_40-Window.png?raw=true "remote and remoteuser entries in remote DokuWiki configuration.")
 
 I decided to migrate to MediaWiki and use the [CloneDiff](https://www.mediawiki.org/wiki/Extension:CloneDiff) MediaWiki extension, but I noticed that the learning curve of MediaWiki is higher than DokuWiki and there isn't a easy replacement to [RefNotes](https://www.dokuwiki.org/plugin:refnotes) DokuWiki plugin and others. So I decided to stick with DokuWiki, but I needed to solve this issue and find a way to sync a remote DokuWiki instance with a local one without user intervention (unattended) and at specific time intervals.
 
