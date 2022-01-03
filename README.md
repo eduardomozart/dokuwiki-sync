@@ -212,6 +212,13 @@ Errorcode | Description
 5         | dokujclient '--user' parameter is not set.
 6         | dokujclient '--password' parameter is not set.
 
+# ToDo
+
+1. Delete local pages that do not exist remotely.
+2. Push newer local pages to remote location.
+3. Clear cache and rebuild index only to synced pages.
+4. Add self update capability to ``dokuwiki-sync`` script.
+
 # License
 
 [GNU General Public License v3.0](LICENSE) License.
