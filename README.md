@@ -24,10 +24,10 @@ sudo apt-get install dokujclient
 
 If it isn't available in the packages of your plataform you may:
 
-1. Download the [binaries](http://turri.fr/dokujclient).
+1. Download the [binaries](http://repo1.maven.org/maven2/fr/turri/).
 
 ```
-curl -L -o /tmp/dokujclient-3.9.1-bin.tar.gz http://turri.fr/dokujclient/dokujclient-3.9.1-bin.tar.gz
+curl -L -o /tmp/dokujclient-3.9.1-bin.tar.gz https://repo1.maven.org/maven2/fr/turri/dokujclient/3.9.1/dokujclient-3.9.1-bin.tar.gz
 ```
 
 2. Extract it, and add the extracted directoy to your path.
