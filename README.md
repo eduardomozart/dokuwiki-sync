@@ -29,16 +29,18 @@ If it isn't available in the packages of your plataform you may:
 ```
 curl -L -o /tmp/dokujclient-3.9.1-bin.tar.gz https://repo1.maven.org/maven2/fr/turri/dokujclient/3.9.1/dokujclient-3.9.1-bin.tar.gz
 ```
-
+ 
 2. Extract it, and add the extracted directoy to your path.
 
 ```
-mkdir /usr/local/dokujclient && tar -zxf /tmp/dokujclient-3.9.1-bin.tar.gz --strip-components=1 -C /usr/local/dokujclient
-chown -Rf root:root /usr/local/dokujclient
-ln -s /usr/local/dokujclient/dokujclient /usr/local/bin
+sudo mkdir /usr/local/dokujclient && sudo tar -zxf /tmp/dokujclient-3.9.1-bin.tar.gz --strip-components=1 -C /usr/local/dokujclient
+sudo chown -Rf root:wheel /usr/local/dokujclient
+sudo ln -s /usr/local/dokujclient/dokujclient /usr/local/bin
 ```
 
-3. Ensure it's correctly installed, typing e.g.:
+3. If you're using macOS, you'll need to install "coreutils" package from Homebrew and apply the [PR#113](https://github.com/gturri/dokuJClient/pull/113) on "/usr/local/dokujclient/dokujclient" file to dokujClient works as expected.
+
+4. Ensure it's correctly installed, typing e.g.:
 
 ```
 dokujclient --version
