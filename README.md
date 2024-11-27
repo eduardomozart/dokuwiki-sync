@@ -1,3 +1,7 @@
+This script isn't mantained anymore because [dokuJClient](https://github.com/gturri/dokuJClient) has been discontinued and it doesn't work since 2022 release of DokuWiki.
+
+---
+
 # dokuwiki-sync
 
 Shell script to sync remote DokuWiki instance to local one through XMLRPC using [dokuJClient](https://github.com/gturri/dokuJClient).
