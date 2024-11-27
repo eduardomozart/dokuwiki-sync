@@ -49,8 +49,8 @@ dokujclient --version
 ## Getting the dokuwiki-sync script
 
 ```
-curl -L -o /usr/local/bin/dokuwiki-sync https://raw.githubusercontent.com/eduardomozart/dokuwiki-sync/main/dokuwiki-sync
-chmod +x /usr/local/bin/dokuwiki-sync
+sudo curl -L -o /usr/local/bin/dokuwiki-sync https://raw.githubusercontent.com/eduardomozart/dokuwiki-sync/main/dokuwiki-sync
+sudo chmod +x /usr/local/bin/dokuwiki-sync
 ```
 
 Ensure it's correctly installed, typing e.g.:
