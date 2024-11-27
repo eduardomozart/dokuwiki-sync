@@ -49,7 +49,7 @@ dokujclient --version
 ## Getting the dokuwiki-sync script
 
 ```
-curl -L -o /usr/local/bin/dokuwiki-sync https://raw.githubusercontent.com/coldscientist/dokuwiki-sync/main/dokuwiki-sync
+curl -L -o /usr/local/bin/dokuwiki-sync https://raw.githubusercontent.com/eduardomozart/dokuwiki-sync/main/dokuwiki-sync
 chmod +x /usr/local/bin/dokuwiki-sync
 ```
 
